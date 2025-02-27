@@ -1,0 +1,6 @@
+{
+  "extends": "oxlint:recommended",
+  "rules": {
+    // 在这里添加您想要的自定义规则
+  }
+} 
