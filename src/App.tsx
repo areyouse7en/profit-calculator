@@ -20,9 +20,9 @@ function App() {
 	const [profitMarginType, setProfitMarginType] =
 		useState<ProfitMarginType>("afterTax");
 	const [showResults, setShowResults] = useState<boolean>(false);
-	const [cost, setCost] = useState<number | string>(); // 成本单价
-	const [price, setPrice] = useState<number | string>(); // 销售单价
-	const [profitMargin, setProfitMargin] = useState<number | string>(); // 毛利率
+	const [cost, setCost] = useState<string>(""); // 成本单价
+	const [price, setPrice] = useState<string>(""); // 销售单价
+	const [profitMargin, setProfitMargin] = useState<string>(""); // 毛利率
 	const [priceAfterTax, setPriceAfterTax] = useState<number | undefined>(); // 销售单价（税后）
 	const [quantity, setQuantity] = useState<number>(1); // 数量
 	const [taxRate, setTaxRate] = useState<number>(defaultTaxRate); // 税率
@@ -63,33 +63,69 @@ function App() {
 		setShowResults(false);
 	};
 
+	// 抽取公共计算逻辑
+	const calculateCommonValues = (costValue: number, priceValue: number, quantityValue: number, taxRateValue: number) => {
+		const totalCostValue = costValue * quantityValue;
+		const totalPriceBeforeTaxValue = priceValue * quantityValue;
+		const priceAfterTaxValue = priceValue * (1 - taxRateValue / 100);
+		const totalPriceAfterTaxValue = totalPriceBeforeTaxValue * (1 - taxRateValue / 100);
+		const totalProfitBeforeTaxValue = totalPriceBeforeTaxValue - totalCostValue;
+		const profitMarginBeforeTaxValue = (totalProfitBeforeTaxValue / totalPriceBeforeTaxValue) * 100;
+		const totalProfitAfterTaxValue = totalPriceAfterTaxValue - totalCostValue;
+		const profitMarginAfterTaxValue = (totalProfitAfterTaxValue / totalPriceAfterTaxValue) * 100;
+
+		return {
+			totalCostValue,
+			totalPriceBeforeTaxValue,
+			priceAfterTaxValue, 
+			totalPriceAfterTaxValue,
+			totalProfitBeforeTaxValue,
+			profitMarginBeforeTaxValue,
+			totalProfitAfterTaxValue,
+			profitMarginAfterTaxValue
+		};
+	};
+
+	// 验证表单数据
+	const validateInputs = (): boolean => {
+		if (calculateType === "profit" && (!cost || !price)) {
+			return false;
+		}
+		if (calculateType === "price" && (!cost || !profitMargin)) {
+			return false;
+		}
+		if (calculateType === "cost" && (!price || !profitMargin)) {
+			return false;
+		}
+		if (!quantity || quantity <= 0 || !taxRate || taxRate < 0) {
+			return false;
+		}
+		return true;
+	};
+
 	const calculate = () => {
+		if (!validateInputs()) {
+			return;
+		}
+
 		// 计算毛利
 		if (calculateType === "profit") {
 			if (!cost || !price || !quantity || !taxRate) {
 				return;
 			}
-			const totalCostValue = Number(cost) * quantity;
-			const totalPriceBeforeTaxValue = Number(price) * quantity;
-			const priceAfterTaxValue = Number(price) * (1 - taxRate / 100);
-			const totalPriceAfterTaxValue =
-				totalPriceBeforeTaxValue * (1 - taxRate / 100);
-			const totalProfitBeforeTaxValue =
-				totalPriceBeforeTaxValue - totalCostValue;
-			const profitMarginBeforeTaxValue =
-				(totalProfitBeforeTaxValue / totalPriceBeforeTaxValue) * 100;
-			const totalProfitAfterTaxValue = totalPriceAfterTaxValue - totalCostValue;
-			const profitMarginAfterTaxValue =
-				(totalProfitAfterTaxValue / totalPriceAfterTaxValue) * 100;
+			const costValue = Number(cost);
+			const priceValue = Number(price);
+			
+			const results = calculateCommonValues(costValue, priceValue, quantity, taxRate);
 
-			setPriceAfterTax(priceAfterTaxValue);
-			setTotalCost(totalCostValue);
-			setTotalPriceBeforeTax(totalPriceBeforeTaxValue);
-			setTotalPriceAfterTax(totalPriceAfterTaxValue);
-			setTotalProfitBeforeTax(totalProfitBeforeTaxValue);
-			setTotalProfitAfterTax(totalProfitAfterTaxValue);
-			setProfitMarginBeforeTax(profitMarginBeforeTaxValue);
-			setProfitMarginAfterTax(profitMarginAfterTaxValue);
+			setPriceAfterTax(results.priceAfterTaxValue);
+			setTotalCost(results.totalCostValue);
+			setTotalPriceBeforeTax(results.totalPriceBeforeTaxValue);
+			setTotalPriceAfterTax(results.totalPriceAfterTaxValue);
+			setTotalProfitBeforeTax(results.totalProfitBeforeTaxValue);
+			setTotalProfitAfterTax(results.totalProfitAfterTaxValue);
+			setProfitMarginBeforeTax(results.profitMarginBeforeTaxValue);
+			setProfitMarginAfterTax(results.profitMarginAfterTaxValue);
 		}
 
 		// 计算售价
@@ -113,7 +149,7 @@ function App() {
 					totalPriceAfterTaxValue - totalCostValue;
 				const profitMarginAfterTaxValue =
 					(totalProfitAfterTaxValue / totalPriceAfterTaxValue) * 100;
-				setPrice(priceValue);
+				setPrice(priceValue.toString());
 				setPriceAfterTax(priceAfterTaxValue);
 				setTotalPriceBeforeTax(totalPriceBeforeTaxValue);
 				setTotalPriceAfterTax(totalPriceAfterTaxValue);
@@ -134,7 +170,7 @@ function App() {
 					totalPriceAfterTaxValue - totalCostValue;
 				const profitMarginBeforeTaxValue =
 					(totalProfitBeforeTaxValue / totalPriceBeforeTaxValue) * 100;
-				setPrice(priceValue);
+				setPrice(priceValue.toString());
 				setPriceAfterTax(priceAfterTaxValue);
 				setTotalCost(totalCostValue);
 				setTotalPriceBeforeTax(totalPriceBeforeTaxValue);
@@ -171,7 +207,7 @@ function App() {
 				const profitMarginAfterTaxValue =
 					(totalProfitAfterTaxValue / totalPriceAfterTaxValue) * 100;
 
-				setCost(costValue);
+				setCost(costValue.toString());
 				setTotalCost(totalCostValue);
 				setTotalProfitBeforeTax(totalProfitBeforeTaxValue);
 				setTotalProfitAfterTax(totalProfitAfterTaxValue);
@@ -190,7 +226,7 @@ function App() {
 				const profitMarginBeforeTaxValue =
 					(totalProfitBeforeTaxValue / totalPriceBeforeTaxValue) * 100;
 
-				setCost(costValue);
+				setCost(costValue.toString());
 				setTotalCost(totalCostValue);
 				setTotalProfitBeforeTax(totalProfitBeforeTaxValue);
 				setTotalProfitAfterTax(totalProfitAfterTaxValue);
@@ -203,19 +239,23 @@ function App() {
 	};
 
 	const handleInputChange = (
-		e: React.ChangeEvent<HTMLInputElement>,
-		setValue: (value: number) => void
+		e: React.ChangeEvent<HTMLInputElement>, 
+		setValue: React.Dispatch<React.SetStateAction<any>>
 	) => {
 		if (showResults) {
 			setShowResults(false);
 		}
-		const value = e.target.value as unknown as number;
-		setValue(value);
+		setValue(e.target.value);
 	};
 
 	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		calculate();
+	};
+
+	const formatNumber = (num: number | undefined): string => {
+		if (num === undefined) return "";
+		return num.toFixed(2);
 	};
 
 	return (
@@ -263,9 +303,7 @@ function App() {
 										placeholder="请输入数字"
 										type="number"
 										value={cost}
-										onChange={(e) => {
-											handleInputChange(e, setCost);
-										}}
+										onChange={(e) => handleInputChange(e, setCost)}
 									/>
 								</Form.Control>
 								<Form.Message
@@ -286,9 +324,7 @@ function App() {
 										placeholder="请输入数字"
 										type="number"
 										value={price}
-										onChange={(e) => {
-											handleInputChange(e, setPrice);
-										}}
+										onChange={(e) => handleInputChange(e, setPrice)}
 									/>
 								</Form.Control>
 								<Form.Message
@@ -336,9 +372,7 @@ function App() {
 										placeholder="请输入数字"
 										type="number"
 										value={profitMargin}
-										onChange={(e) => {
-											handleInputChange(e, setProfitMargin);
-										}}
+										onChange={(e) => handleInputChange(e, setProfitMargin)}
 									/>
 								</Form.Control>
 								<Form.Message
@@ -366,9 +400,7 @@ function App() {
 									placeholder="请输入数字"
 									type="number"
 									value={quantity}
-									onChange={(e) => {
-										handleInputChange(e, setQuantity);
-									}}
+									onChange={(e) => handleInputChange(e, setQuantity)}
 								/>
 							</Form.Control>
 						</Form.Field>
@@ -382,9 +414,7 @@ function App() {
 									placeholder="请输入数字"
 									type="number"
 									value={taxRate}
-									onChange={(e) => {
-										handleInputChange(e, setTaxRate);
-									}}
+									onChange={(e) => handleInputChange(e, setTaxRate)}
 								/>
 							</Form.Control>
 							<Form.Message
@@ -420,7 +450,7 @@ function App() {
 								mb="1"
 								className={calculateType === "cost" ? "font-bold" : ""}
 							>
-								{cost}
+								{formatNumber(Number(cost))}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -432,7 +462,7 @@ function App() {
 								mb="1"
 								className={calculateType === "cost" ? "font-bold" : ""}
 							>
-								{totalCost}
+								{formatNumber(totalCost)}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -444,7 +474,7 @@ function App() {
 								mb="1"
 								className={calculateType === "price" ? "font-bold" : ""}
 							>
-								{price}
+								{formatNumber(Number(price))}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -456,7 +486,7 @@ function App() {
 								mb="1"
 								className={calculateType === "price" ? "font-bold" : ""}
 							>
-								{totalPriceBeforeTax}
+								{formatNumber(totalPriceBeforeTax)}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -468,7 +498,7 @@ function App() {
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
 							>
-								{totalProfitBeforeTax}
+								{formatNumber(totalProfitBeforeTax)}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -480,7 +510,7 @@ function App() {
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
 							>
-								{Number(profitMarginBeforeTax).toFixed(2)}%
+								{profitMarginBeforeTax !== undefined ? formatNumber(profitMarginBeforeTax) + "%" : ""}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -488,7 +518,7 @@ function App() {
 								销售单价（税后）
 							</Text>
 							<Text size="2" mb="1" color="gray">
-								{priceAfterTax}
+								{formatNumber(priceAfterTax)}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -496,7 +526,7 @@ function App() {
 								销售总价（税后）
 							</Text>
 							<Text size="2" mb="1" color="gray">
-								{totalPriceAfterTax}
+								{formatNumber(totalPriceAfterTax)}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -508,7 +538,7 @@ function App() {
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
 							>
-								{totalProfitAfterTax}
+								{formatNumber(totalProfitAfterTax)}
 							</Text>
 						</Flex>
 						<Flex justify="between">
@@ -520,7 +550,7 @@ function App() {
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
 							>
-								{Number(profitMarginAfterTax).toFixed(2)}%
+								{profitMarginAfterTax !== undefined ? formatNumber(profitMarginAfterTax) + "%" : ""}
 							</Text>
 						</Flex>
 					</Flex>
