@@ -10,6 +10,7 @@ import {
 	SegmentedControl,
 } from "@radix-ui/themes";
 import * as Form from "@radix-ui/react-form";
+import { calculateCommonValues, formatNumber } from "./util";
 
 type CalculateType = "profit" | "price" | "cost";
 type ProfitMarginType = "beforeTax" | "afterTax";
@@ -63,29 +64,6 @@ function App() {
 		setShowResults(false);
 	};
 
-	// 抽取公共计算逻辑
-	const calculateCommonValues = (costValue: number, priceValue: number, quantityValue: number, taxRateValue: number) => {
-		const totalCostValue = costValue * quantityValue;
-		const totalPriceBeforeTaxValue = priceValue * quantityValue;
-		const priceAfterTaxValue = priceValue * (1 - taxRateValue / 100);
-		const totalPriceAfterTaxValue = totalPriceBeforeTaxValue * (1 - taxRateValue / 100);
-		const totalProfitBeforeTaxValue = totalPriceBeforeTaxValue - totalCostValue;
-		const profitMarginBeforeTaxValue = (totalProfitBeforeTaxValue / totalPriceBeforeTaxValue) * 100;
-		const totalProfitAfterTaxValue = totalPriceAfterTaxValue - totalCostValue;
-		const profitMarginAfterTaxValue = (totalProfitAfterTaxValue / totalPriceAfterTaxValue) * 100;
-
-		return {
-			totalCostValue,
-			totalPriceBeforeTaxValue,
-			priceAfterTaxValue, 
-			totalPriceAfterTaxValue,
-			totalProfitBeforeTaxValue,
-			profitMarginBeforeTaxValue,
-			totalProfitAfterTaxValue,
-			profitMarginAfterTaxValue
-		};
-	};
-
 	// 验证表单数据
 	const validateInputs = (): boolean => {
 		if (calculateType === "profit" && (!cost || !price)) {
@@ -115,7 +93,7 @@ function App() {
 			}
 			const costValue = Number(cost);
 			const priceValue = Number(price);
-			
+
 			const results = calculateCommonValues(costValue, priceValue, quantity, taxRate);
 
 			setPriceAfterTax(results.priceAfterTaxValue);
@@ -241,7 +219,7 @@ function App() {
 	};
 
 	const handleInputChange = (
-		e: React.ChangeEvent<HTMLInputElement>, 
+		e: React.ChangeEvent<HTMLInputElement>,
 		setValue: React.Dispatch<React.SetStateAction<any>>
 	) => {
 		if (showResults) {
@@ -255,10 +233,6 @@ function App() {
 		calculate();
 	};
 
-	const formatNumber = (num: number | undefined): string => {
-		if (num === undefined) return "";
-		return num.toFixed(2);
-	};
 
 	return (
 		<div className="container">
@@ -270,6 +244,7 @@ function App() {
 							setCalculateType("profit");
 							resetFields();
 						}}
+						data-testid="tab-profit"
 					>
 						计算毛利
 					</Tabs.Trigger>
@@ -279,6 +254,7 @@ function App() {
 							setCalculateType("price");
 							resetFields();
 						}}
+						data-testid="tab-price"
 					>
 						计算售价
 					</Tabs.Trigger>
@@ -288,6 +264,7 @@ function App() {
 							setCalculateType("cost");
 							resetFields();
 						}}
+						data-testid="tab-cost"
 					>
 						计算成本
 					</Tabs.Trigger>
@@ -306,6 +283,7 @@ function App() {
 										type="number"
 										value={cost}
 										onChange={(e) => handleInputChange(e, setCost)}
+										data-testid="cost"
 									/>
 								</Form.Control>
 								<Form.Message
@@ -327,6 +305,7 @@ function App() {
 										type="number"
 										value={price}
 										onChange={(e) => handleInputChange(e, setPrice)}
+										data-testid="price"
 									/>
 								</Form.Control>
 								<Form.Message
@@ -361,10 +340,10 @@ function App() {
 										}}
 										size="1"
 									>
-										<SegmentedControl.Item value="beforeTax">
+										<SegmentedControl.Item value="beforeTax" data-testid="tab-beforeTax">
 											税前
 										</SegmentedControl.Item>
-										<SegmentedControl.Item value="afterTax">
+										<SegmentedControl.Item value="afterTax" data-testid="tab-afterTax">
 											税后
 										</SegmentedControl.Item>
 									</SegmentedControl.Root>
@@ -375,6 +354,7 @@ function App() {
 										type="number"
 										value={profitMargin}
 										onChange={(e) => handleInputChange(e, setProfitMargin)}
+										data-testid="profit-margin"
 									/>
 								</Form.Control>
 								<Form.Message
@@ -403,6 +383,7 @@ function App() {
 									type="number"
 									value={quantity}
 									onChange={(e) => handleInputChange(e, setQuantity)}
+									data-testid="quantity"
 								/>
 							</Form.Control>
 						</Form.Field>
@@ -417,6 +398,7 @@ function App() {
 									type="number"
 									value={taxRate}
 									onChange={(e) => handleInputChange(e, setTaxRate)}
+									data-testid="tax-rate"
 								/>
 							</Form.Control>
 							<Form.Message
@@ -432,6 +414,7 @@ function App() {
 									width: "100%",
 									cursor: "pointer",
 								}}
+								data-testid="calculate-button"
 							>
 								开始计算
 							</Button>
@@ -451,6 +434,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "cost" ? "font-bold" : ""}
+								data-testid="cost-value"
 							>
 								{formatNumber(Number(cost))}
 							</Text>
@@ -463,6 +447,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "cost" ? "font-bold" : ""}
+								data-testid="total-cost-value"
 							>
 								{formatNumber(totalCost)}
 							</Text>
@@ -475,6 +460,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "price" ? "font-bold" : ""}
+								data-testid="price-beforeTax-value"
 							>
 								{formatNumber(Number(price))}
 							</Text>
@@ -487,6 +473,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "price" ? "font-bold" : ""}
+								data-testid="total-price-beforeTax-value"
 							>
 								{formatNumber(totalPriceBeforeTax)}
 							</Text>
@@ -499,6 +486,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
+								data-testid="total-profit-beforeTax-value"
 							>
 								{formatNumber(totalProfitBeforeTax)}
 							</Text>
@@ -511,6 +499,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
+								data-testid="profit-margin-beforeTax-value"
 							>
 								{profitMarginBeforeTax !== undefined ? formatNumber(profitMarginBeforeTax) + "%" : ""}
 							</Text>
@@ -519,7 +508,7 @@ function App() {
 							<Text size="2" mb="1" color="gray">
 								销售单价（税后）
 							</Text>
-							<Text size="2" mb="1">
+							<Text size="2" mb="1" data-testid="price-afterTax-value" >
 								{formatNumber(priceAfterTax)}
 							</Text>
 						</Flex>
@@ -527,7 +516,7 @@ function App() {
 							<Text size="2" mb="1" color="gray">
 								销售总价（税后）
 							</Text>
-							<Text size="2" mb="1">
+							<Text size="2" mb="1" data-testid="total-price-afterTax-value">
 								{formatNumber(totalPriceAfterTax)}
 							</Text>
 						</Flex>
@@ -539,6 +528,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
+								data-testid="total-profit-afterTax-value"
 							>
 								{formatNumber(totalProfitAfterTax)}
 							</Text>
@@ -551,6 +541,7 @@ function App() {
 								size="2"
 								mb="1"
 								className={calculateType === "profit" ? "font-bold" : ""}
+								data-testid="profit-margin-afterTax-value"
 							>
 								{profitMarginAfterTax !== undefined ? formatNumber(profitMarginAfterTax) + "%" : ""}
 							</Text>
