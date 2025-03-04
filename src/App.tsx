@@ -156,6 +156,7 @@ function App() {
 				setTotalProfitBeforeTax(totalProfitBeforeTaxValue);
 				setTotalProfitAfterTax(totalProfitAfterTaxValue);
 				setProfitMarginAfterTax(profitMarginAfterTaxValue);
+				setProfitMarginBeforeTax(profitMarginBeforeTaxValue);
 			} else if (profitMarginType === "afterTax" && profitMargin) {
 				// 用税后毛利率计算
 				const profitMarginAfterTaxValue = Number(profitMargin);
@@ -178,6 +179,7 @@ function App() {
 				setTotalProfitBeforeTax(totalProfitBeforeTaxValue);
 				setTotalProfitAfterTax(totalProfitAfterTaxValue);
 				setProfitMarginBeforeTax(profitMarginBeforeTaxValue);
+				setProfitMarginAfterTax(profitMarginAfterTaxValue);
 			}
 		}
 
@@ -517,7 +519,7 @@ function App() {
 							<Text size="2" mb="1" color="gray">
 								销售单价（税后）
 							</Text>
-							<Text size="2" mb="1" color="gray">
+							<Text size="2" mb="1">
 								{formatNumber(priceAfterTax)}
 							</Text>
 						</Flex>
@@ -525,7 +527,7 @@ function App() {
 							<Text size="2" mb="1" color="gray">
 								销售总价（税后）
 							</Text>
-							<Text size="2" mb="1" color="gray">
+							<Text size="2" mb="1">
 								{formatNumber(totalPriceAfterTax)}
 							</Text>
 						</Flex>

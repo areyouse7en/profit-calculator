@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Theme } from "@radix-ui/themes";
-import App from "./App.tsx";
+import App from "./app.tsx";
 import "@radix-ui/themes/styles.css";
 import "./index.css";
 
